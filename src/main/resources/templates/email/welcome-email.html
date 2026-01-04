@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Welcome</title>
+    <style>
+        @media (max-width: 620px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .px {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            .h1 {
+                font-size: 22px !important;
+                line-height: 30px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin:0;padding:0;background:#f3f4f6;">
+    <div
+        style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+        Welcome to <span th:text="${companyName}">KingsCode E-Commerce</span> —
+        your account is ready.
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+        border="0" style="background:#f3f4f6;">
+        <tr>
+            <td align="center" style="padding:24px 12px;">
+                <table role="presentation" class="container" width="600"
+                    cellspacing="0" cellpadding="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;
+                      box-shadow:0 8px 24px rgba(17,24,39,0.08);">
+                    <!-- Header -->
+                    <tr>
+                        <td
+                            style="background:linear-gradient(135deg,#16a34a 0%, #0ea5e9 100%);padding:26px 24px;">
+                            <table role="presentation" width="100%"
+                                cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="color:#ffffff;">
+                                        <div
+                                            style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;opacity:.9;">
+                                            <span
+                                                th:text="${companyName}">KingsCode
+                                                E-Commerce</span>
+                                        </div>
+                                        <div class="h1"
+                                            style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:26px;line-height:34px;font-weight:700;margin-top:6px;">
+                                            Welcome aboard!
+                                        </div>
+                                    </td>
+                                    <td align="right"
+                                        style="color:#ffffff;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;opacity:.85;">
+                                        <span
+                                            th:text="${currentYear}">2026</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td class="px" style="padding:28px 34px 10px 34px;">
+                            <p
+                                style="margin:0 0 14px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:24px;color:#111827;">
+                                Hi <strong
+                                    th:text="${recipientName}">User</strong>,
+                            </p>
+
+                            <p
+                                style="margin:0 0 16px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:24px;color:#374151;">
+                                Your email has been verified successfully.
+                                Welcome to
+                                <span th:text="${companyName}">KingsCode
+                                    E-Commerce</span>!
+                            </p>
+
+                            <p
+                                style="margin:0 0 16px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:24px;color:#374151;">
+                                You can now sign in and start exploring your
+                                account.
+                            </p>
+
+                            <!-- CTA Button -->
+                            <table role="presentation" cellspacing="0"
+                                cellpadding="0" border="0"
+                                style="margin:18px 0 10px 0;">
+                                <tr>
+                                    <td align="center" bgcolor="#0ea5e9"
+                                        style="border-radius:10px;">
+                                        <a th:href="${loginLink}"
+                                            style="display:inline-block;padding:12px 18px;font-family:Inter,Segoe UI,Arial,sans-serif;
+                              font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
+                                            Sign in
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="margin:10px 0 0 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#6b7280;">
+                                Tip: Keep your account secure—use a strong
+                                password and never share your login code.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style="padding:16px 34px;">
+                            <div style="height:1px;background:#e5e7eb;"></div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer body -->
+                    <tr>
+                        <td class="px" style="padding:0 34px 26px 34px;">
+                            <p
+                                style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#6b7280;">
+                                Need help? Contact us at
+                                <a th:href="'mailto:' + ${supportEmail}"
+                                    th:text="${supportEmail}"
+                                    style="color:#0ea5e9;text-decoration:underline;">support@kingscode.com</a>.
+                            </p>
+
+                            <p
+                                style="margin:18px 0 0 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#6b7280;">
+                                Regards,<br />
+                                The <span
+                                    th:text="${companyName}">KingsCode</span>
+                                Team
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f9fafb;padding:18px 34px;">
+                            <p
+                                style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
+                                © <span th:text="${currentYear}">2026</span>
+                                <span th:text="${companyName}">KingsCode
+                                    E-Commerce</span>.
+                                This is an automated message—please do not
+                                reply.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="height:16px;"></div>
+                <p
+                    style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:11px;line-height:16px;color:#9ca3af;">
+                    You're receiving this because you created an account with
+                    this email address.
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

@@ -3,7 +3,6 @@ package dev.kingscode.ecommerce_api.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,6 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import dev.kingscode.ecommerce_api.security.JwtAccessDeniedHandler;
 import dev.kingscode.ecommerce_api.security.JwtAuthenticationEntryPoint;
 import dev.kingscode.ecommerce_api.security.filter.JwtAuthFilter;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -31,12 +33,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(customizer -> customizer.disable()).authorizeHttpRequests(
-                request -> request.requestMatchers("/api/v1/auth/*").permitAll()
+                request -> request
+                        .requestMatchers("/api/v1/auth/*").permitAll()
+                        .requestMatchers(
+                                "/api-docs/**",
+                                "/swagger-ui/**",
+                                "/docs/**",
+                                "/",
+                                "/swagger-ui.html")
+                        .permitAll()
                         // .requestMatchers("/api/v1/users/*")
                         // .hasAuthority(UserRole.ADMIN.toString())
                         .anyRequest()
                         .authenticated())
-                .httpBasic(Customizer.withDefaults())
+                // .httpBasic(Customizer.withDefaults())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -53,6 +63,17 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
 
+    }
+
+    @Bean
+    public OpenAPI customizeOpenAPI() {
+        final String securitySchemeName = "bearerAuth";
+
+        return new OpenAPI()
+                // .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                .components(new Components().addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                        .name(securitySchemeName).type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")
+                        .description("JWT authentication")));
     }
 
 }

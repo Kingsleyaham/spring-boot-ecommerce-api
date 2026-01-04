@@ -135,17 +135,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
     }
 
+    // Handle email not verified exception
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNotVerifiedException(
+            EmailNotVerifiedException ex, WebRequest request) {
+
+        log.warn("Email not verified for user: {}", ex.getEmail());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                ex.getErrorCode(),
+                ex.getMessage(),
+                getRequestPath(request));
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
     // Handle authentication/authorization errors
     @ExceptionHandler({ AuthenticationException.class, BadCredentialsException.class })
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
-            Exception ex, WebRequest request) {
+            AuthenticationException ex, WebRequest request) {
 
         log.warn("Authentication failed: {}", ex.getMessage());
         String errorMessage = ex.getMessage() != null ? ex.getMessage() : "Authentication failed";
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.UNAUTHORIZED,
-                ErrorCode.AUTHENTICATION_FAILED,
+                ex.getErrorCode(),
                 errorMessage,
                 getRequestPath(request));
 

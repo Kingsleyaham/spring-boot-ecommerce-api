@@ -118,4 +118,14 @@ public class User implements UserDetails {
                 return email;
         }
 
+        /** Checks if a users account is verified */
+        public boolean isVerified() {
+                return Boolean.TRUE.equals(this.emailVerified);
+        }
+
+        @Override
+        public boolean isEnabled() {
+                return Boolean.TRUE.equals(this.active);
+        }
+
 }

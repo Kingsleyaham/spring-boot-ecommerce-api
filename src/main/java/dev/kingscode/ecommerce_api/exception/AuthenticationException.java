@@ -8,4 +8,8 @@ public class AuthenticationException extends ApiException {
         super(message, ErrorCode.AUTHENTICATION_FAILED);
     }
 
+    public AuthenticationException(String message, ErrorCode errorCode) {
+        super(message, errorCode);
+    }
+
 }

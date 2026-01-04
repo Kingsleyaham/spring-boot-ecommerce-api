@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.kingscode.ecommerce_api.dto.user.request.UpdateUserRequestDto;
 import dev.kingscode.ecommerce_api.dto.user.response.UserResponseDto;
 import dev.kingscode.ecommerce_api.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UserService userService;

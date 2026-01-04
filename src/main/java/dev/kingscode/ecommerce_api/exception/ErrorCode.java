@@ -16,12 +16,25 @@ public enum ErrorCode {
     BIND_ERROR("BIND_ERROR", "Binding error", HttpStatus.BAD_REQUEST),
     ILLEGAL_ARGUMENT("ILLEGAL_ARGUMENT", "Illegal argument provided", HttpStatus.BAD_REQUEST),
     INVALID_PARAMETER("INVALID_PARAMETER", "Invalid parameter value", HttpStatus.BAD_REQUEST),
+    INVALID_TOKEN(
+            "INVALID_TOKEN",
+            "Invalid or already used verification token",
+            HttpStatus.BAD_REQUEST),
+
+    TOKEN_EXPIRED(
+            "TOKEN_EXPIRED",
+            "Verification token has expired",
+            HttpStatus.BAD_REQUEST),
 
     // 401/403 Authentication/Authorization
     UNAUTHENTICATED("UNAUTHENTICATED", "Authentication required", HttpStatus.UNAUTHORIZED),
     AUTHENTICATION_FAILED("AUTHENTICATION_FAILED", "Authentication failed", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("ACCESS_DENIED", "Access denied", HttpStatus.FORBIDDEN),
     INSUFFICIENT_PERMISSIONS("INSUFFICIENT_PERMISSIONS", "Insufficient permissions", HttpStatus.FORBIDDEN),
+    EMAIL_NOT_VERIFIED(
+            "EMAIL_NOT_VERIFIED",
+            "Email address has not been verified",
+            HttpStatus.FORBIDDEN),
 
     // 404 Not Found
     RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "Resource not found", HttpStatus.NOT_FOUND),
@@ -33,6 +46,10 @@ public enum ErrorCode {
     // 409 Conflict
     RESOURCE_CONFLICT("RESOURCE_CONFLICT", "Resource conflict", HttpStatus.CONFLICT),
     DUPLICATE_RESOURCE("DUPLICATE_RESOURCE", "Duplicate resource", HttpStatus.CONFLICT),
+    EMAIL_ALREADY_VERIFIED(
+            "EMAIL_ALREADY_VERIFIED",
+            "Email address is already verified",
+            HttpStatus.CONFLICT),
 
     // 422 Unprocessable Entity
     BUSINESS_RULE_VIOLATION("BUSINESS_RULE_VIOLATION", "Business rule violation", HttpStatus.UNPROCESSABLE_ENTITY),

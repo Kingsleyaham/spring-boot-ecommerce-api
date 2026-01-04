@@ -11,6 +11,12 @@ spring:
       hibernate:
         format_sql: true
 
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: true
+
 logging:
   level:
     web: debug

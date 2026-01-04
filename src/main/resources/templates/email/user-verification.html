@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Verify your email</title>
+    <style>
+        /* Some email clients ignore <style>; but keeping it helps where supported */
+        @media (max-width: 620px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .px {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            .h1 {
+                font-size: 22px !important;
+                line-height: 30px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin:0;padding:0;background:#f3f4f6;">
+    <!-- Preheader (hidden preview text) -->
+    <div
+        style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+        Verify your email to finish creating your account.
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+        border="0" style="background:#f3f4f6;">
+        <tr>
+            <td align="center" style="padding:24px 12px;">
+                <!-- Container -->
+                <table role="presentation" class="container" width="600"
+                    cellspacing="0" cellpadding="0" border="0" style="width:600px;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;
+                      box-shadow:0 8px 24px rgba(17,24,39,0.08);">
+                    <!-- Header -->
+                    <tr>
+                        <td
+                            style="background:linear-gradient(135deg,#4f46e5 0%, #7c3aed 100%);padding:26px 24px;">
+                            <table role="presentation" width="100%"
+                                cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="color:#ffffff;">
+                                        <div
+                                            style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;opacity:.9;">
+                                            <span
+                                                th:text="${companyName}">KingsCode
+                                                E-Commerce</span>
+                                        </div>
+                                        <div class="h1" style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:26px;line-height:34px;
+                                           font-weight:700;margin-top:6px;">
+                                            Verify your email address
+                                        </div>
+                                    </td>
+                                    <td align="right"
+                                        style="color:#ffffff;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;opacity:.85;">
+                                        <span
+                                            th:text="${currentYear}">2026</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td class="px" style="padding:28px 34px 10px 34px;">
+                            <p
+                                style="margin:0 0 14px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:24px;color:#111827;">
+                                Hi <strong
+                                    th:text="${recipientName}">User</strong>,
+                            </p>
+
+                            <p
+                                style="margin:0 0 16px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:24px;color:#374151;">
+                                Thanks for signing up to <span
+                                    th:text="${companyName}">our app</span>.
+                                Please confirm this email address to finish
+                                setting up your account.
+                            </p>
+
+                            <!-- CTA Button (bulletproof) -->
+                            <table role="presentation" cellspacing="0"
+                                cellpadding="0" border="0"
+                                style="margin:18px 0 10px 0;">
+                                <tr>
+                                    <td align="center" bgcolor="#4f46e5"
+                                        style="border-radius:10px;">
+                                        <a th:href="${verificationLink}"
+                                            style="display:inline-block;padding:12px 18px;font-family:Inter,Segoe UI,Arial,sans-serif;
+                              font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
+                                            <span th:text="${buttonText}">Verify
+                                                Email</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="margin:10px 0 0 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#6b7280;">
+                                This link expires in <strong><span
+                                        th:text="${expiryInHours}">24</span>
+                                    hours</strong>.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style="padding:16px 34px;">
+                            <div style="height:1px;background:#e5e7eb;"></div>
+                        </td>
+                    </tr>
+
+                    <!-- Fallback link + code -->
+                    <tr>
+                        <td class="px" style="padding:0 34px 26px 34px;">
+                            <p
+                                style="margin:0 0 10px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#374151;">
+                                If the button doesn’t work, copy and paste this
+                                link into your browser:
+                            </p>
+
+                            <p style="margin:0 0 14px 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:18px;color:#111827;
+                        word-break:break-all;">
+                                <a th:href="${verificationLink}"
+                                    th:text="${verificationLink}"
+                                    style="color:#4f46e5;text-decoration:underline;">
+                                    https://example.com/verify?token=...
+                                </a>
+                            </p>
+
+
+                            <!-- Safety note -->
+                            <div
+                                style="margin-top:16px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;">
+                                <p
+                                    style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:18px;color:#9a3412;">
+                                    If you didn’t create an account, you can
+                                    safely ignore this email.
+                                </p>
+                            </div>
+
+                            <p
+                                style="margin:18px 0 0 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px;line-height:20px;color:#6b7280;">
+                                Regards,<br />
+                                The <span
+                                    th:text="${companyName}">KingsCode</span>
+                                Team
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f9fafb;padding:18px 34px;">
+                            <p
+                                style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
+                                © <span th:text="${currentYear}">2026</span>
+                                <span th:text="${companyName}">KingsCode
+                                    E-Commerce</span>.
+                                This is an automated message—please do not
+                                reply.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Spacer -->
+                <div style="height:16px;"></div>
+
+                <!-- Optional: plain footer outside card -->
+                <p
+                    style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:11px;line-height:16px;color:#9ca3af;">
+                    You’re receiving this because an account was created using
+                    this email address.
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

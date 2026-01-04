@@ -22,7 +22,6 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION}
-
-springdoc:
-  api-docs:
-    enabled: false
+# springdoc:
+#   api-docs:
+#     enabled: false

@@ -1,7 +1,11 @@
 package dev.kingscode.ecommerce_api.controller;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +30,18 @@ public class AdminController {
 
         return userService.getUsers(page, size);
 
+    }
+
+    @GetMapping("/users/{id}")
+    public UserResponseDto getUserById(@PathVariable String id) {
+        UUID userId = UUID.fromString(id);
+        return userService.getUserById(userId);
+    }
+
+    @DeleteMapping("/users/{id}")
+    public void deleteUser(@PathVariable String id) {
+        UUID userId = UUID.fromString(id);
+        userService.deleteUser(userId);
     }
 
 }

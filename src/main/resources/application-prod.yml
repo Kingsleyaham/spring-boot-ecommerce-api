@@ -26,9 +26,6 @@ jwt:
 springdoc:
   api-docs:
     path: /api-docs
-    servers:
-      - url: https://ecommerce-api.kingscode.dev
-        description: Product server
 
 server:
   forward-headers-strategy: framework

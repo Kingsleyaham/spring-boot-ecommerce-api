@@ -63,6 +63,13 @@ public enum ErrorCode {
     SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE", "Service unavailable", HttpStatus.SERVICE_UNAVAILABLE),
     DATABASE_ERROR("DATABASE_ERROR", "Database error", HttpStatus.INTERNAL_SERVER_ERROR),
 
+    // File / Media errors
+    FILE_UPLOAD_FAILED("FILE_UPLOAD_FAILED", "File upload failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_DELETE_FAILED("FILE_DELETE_FAILED", "File deletion failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_NOT_FOUND("FILE_NOT_FOUND", "File not found", HttpStatus.NOT_FOUND),
+    INVALID_FILE_TYPE("INVALID_FILE_TYPE", "Invalid file type", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_SIZE("INVALID_FILE_SIZE", "Invalid file size", HttpStatus.PAYLOAD_TOO_LARGE),
+
     // Default/Uncategorized
     UNCATEGORIZED_EXCEPTION("UNCATEGORIZED_EXCEPTION", "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
 

@@ -11,7 +11,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import dev.kingscode.ecommerce_api.dto.FileUploadResult;
 import dev.kingscode.ecommerce_api.dto.user.request.CreateUserRequestDto;
 import dev.kingscode.ecommerce_api.dto.user.request.ResetPasswordRequestDto;
 import dev.kingscode.ecommerce_api.dto.user.request.UpdateUserRequestDto;
@@ -25,6 +27,8 @@ import dev.kingscode.ecommerce_api.model.User;
 import dev.kingscode.ecommerce_api.model.enums.UserRole;
 import dev.kingscode.ecommerce_api.repository.UserRepository;
 import dev.kingscode.ecommerce_api.service.email.VerificationEmailService;
+import dev.kingscode.ecommerce_api.service.storage.FileStorageService;
+import dev.kingscode.ecommerce_api.service.storage.FileValidationService;
 import dev.kingscode.ecommerce_api.util.TokenGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +44,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenGenerator tokenGenerator;
     private final VerificationEmailService emailService;
+    private final FileValidationService fileValidationService;
+    private final FileStorageService fileStorageService;
 
     @Transactional(readOnly = true)
     public UserResponseDto getUserById(UUID userId) {
@@ -104,6 +110,24 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         userRepo.delete(existingUser);
+    }
+
+    public FileUploadResult uploadProfileImage(UUID userId, MultipartFile file) {
+        User existingUser = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        // validate uploaded file
+        fileValidationService.validateImage(file);
+
+        // upload file
+        FileUploadResult uploadedFile = fileStorageService.uploadFile(file, "avatars");
+        log.info("{} uploaded successfully for user {}", uploadedFile.getUrl(), existingUser.getEmail());
+
+        User updatedUser = existingUser.builder().profileImage(uploadedFile.getUrl()).build();
+        userRepo.save(updatedUser);
+
+        return uploadedFile;
+
     }
 
     /**

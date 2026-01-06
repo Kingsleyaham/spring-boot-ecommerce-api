@@ -47,6 +47,11 @@ spring:
     encoding: UTF-8
     cache: false
 
+  servlet:
+    multipart:
+      max-request-size: 2MB
+      max-file-size: 2MB
+
 app:
   mail:
     from: "No Reply <${MAIL_FROM}>"
@@ -54,3 +59,9 @@ app:
   client-base-url: ${CLIENT_BASE_URL}
   company:
     name: "KingsCode E-Commerce"
+
+aws:
+  s3:
+    bucket-name: ${S3_BUCKET}
+    region: ${S3_BUCKET:eu-north-1}
+    public-url: https://%s.s3.amazonaws.com

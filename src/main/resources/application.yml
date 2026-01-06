@@ -63,5 +63,5 @@ app:
 aws:
   s3:
     bucket-name: ${S3_BUCKET}
-    region: ${S3_BUCKET:eu-north-1}
+    region: ${S3_BUCKET_REGION:eu-north-1}
     public-url: https://%s.s3.amazonaws.com

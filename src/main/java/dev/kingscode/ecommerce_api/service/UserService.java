@@ -123,7 +123,7 @@ public class UserService {
         FileUploadResult uploadedFile = fileStorageService.uploadFile(file, "avatars");
         log.info("{} uploaded successfully for user {}", uploadedFile.getUrl(), existingUser.getEmail());
 
-        User updatedUser = existingUser.builder().profileImage(uploadedFile.getUrl()).build();
+        User updatedUser = existingUser.toBuilder().profileImage(uploadedFile.getUrl()).build();
         userRepo.save(updatedUser);
 
         return uploadedFile;

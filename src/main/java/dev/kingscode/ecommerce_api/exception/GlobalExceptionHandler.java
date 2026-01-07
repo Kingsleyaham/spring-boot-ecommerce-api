@@ -25,6 +25,9 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import dev.kingscode.ecommerce_api.dto.ApiException;
 import dev.kingscode.ecommerce_api.dto.ErrorResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -241,6 +244,32 @@ public class GlobalExceptionHandler {
                 getRequestPath(request));
 
         return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
+        log.warn("JWT token has expired: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                ErrorCode.TOKEN_EXPIRED, // Assumes you have this in your ErrorCode enum
+                "JWT token has expired",
+                getRequestPath(request));
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({ SignatureException.class, MalformedJwtException.class })
+    public ResponseEntity<ErrorResponse> handleInvalidJwtSignatureException(Exception ex, WebRequest request) {
+        log.warn("Invalid JWT token: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                ErrorCode.INVALID_TOKEN, // Assumes you have this
+                "Invalid JWT token or signature",
+                getRequestPath(request));
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     // Catch-all for any unhandled exceptions

@@ -2,6 +2,7 @@ package dev.kingscode.ecommerce_api.security.filter;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,22 +10,34 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import dev.kingscode.ecommerce_api.service.JWTService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;
+    private final HandlerExceptionResolver resolver;
+
+    public JwtAuthFilter(
+            JWTService jwtService,
+            UserDetailsService userDetailsService,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+        this.resolver = resolver;
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
@@ -61,8 +74,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     log.warn("Invalid token for user: {}", userEmail);
                 }
             }
-        } catch (Exception e) {
-            log.error("Failed to process JWT token: {}", e.getMessage());
+        } catch (ExpiredJwtException | SignatureException | IllegalArgumentException e) {
+            log.warn("Failed to process JWT token: {}", e.getMessage());
+            resolver.resolveException(request, response, null, e);
         }
 
         filterChain.doFilter(request, response);

@@ -20,7 +20,7 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Build (Maven)
+      - name: Run Test and Build (Maven)
         run: mvn -B package
 
       - name: Create app.jar

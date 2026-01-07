@@ -27,6 +27,8 @@ spring:
       port: ${REDIS_PORT:6379}
       username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
+      database: 0
+      timeout: 2000ms
 
   mail:
     host: ${MAIL_HOST}
@@ -55,6 +57,11 @@ spring:
 app:
   mail:
     from: "No Reply <${MAIL_FROM}>"
+    queue:
+      name: email-queue
+      dead-letter: email-dead-letter
+      max-retries: 3
+      retry-delay-seconds: 60
   base-url: ${BASE_URL}
   client-base-url: ${CLIENT_BASE_URL}
   company:

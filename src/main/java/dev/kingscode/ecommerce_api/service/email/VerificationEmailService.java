@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import dev.kingscode.ecommerce_api.dto.email.EmailQueueMessage;
 import dev.kingscode.ecommerce_api.dto.email.VerificationEmailDto;
 import dev.kingscode.ecommerce_api.model.enums.EmailType;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class VerificationEmailService {
-    private final EmailService mailService;
     private final EmailTemplateVariablesBuilder templateVariablesBuilder;
+    private final EmailQueueService emailQueueService;
 
     /**
      * Send user registration verification email
@@ -81,7 +82,14 @@ public class VerificationEmailService {
             String subject = emailDto.getEmailType().getDefaultSubject();
             String templateName = emailDto.getEmailType().getTemplateName();
 
-            mailService.sendHtmlEmail(emailDto.getRecipientEmail(), subject, templateName, variables);
+            EmailQueueMessage queueMessage = EmailQueueMessage.builder().to(emailDto.getRecipientEmail())
+                    .subject(subject).templateName(templateName).variables(variables).retryCount(0)
+                    .createdAt(Instant.now()).build();
+
+            emailQueueService.enqueue(queueMessage);
+
+            // mailService.sendHtmlEmail(emailDto.getRecipientEmail(), subject,
+            // templateName, variables);
 
             log.info("{} email sent successfully to: {}", emailDto.getEmailType(), emailDto.getRecipientEmail());
 

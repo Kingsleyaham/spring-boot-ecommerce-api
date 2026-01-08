@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class UserResponseDto {
     UUID id;
     String email;

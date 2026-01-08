@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,9 +23,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
+import dev.kingscode.ecommerce_api.dto.FileUploadResult;
 import dev.kingscode.ecommerce_api.dto.user.request.CreateUserRequestDto;
+import dev.kingscode.ecommerce_api.dto.user.request.UpdateUserRequestDto;
 import dev.kingscode.ecommerce_api.dto.user.response.UserResponseDto;
+import dev.kingscode.ecommerce_api.exception.AuthorizationException;
 import dev.kingscode.ecommerce_api.exception.ErrorCode;
 import dev.kingscode.ecommerce_api.exception.ResourceConflictException;
 import dev.kingscode.ecommerce_api.exception.ResourceNotFoundException;
@@ -209,6 +215,58 @@ public class UserServiceTest {
         }
 
         @Test
+        void updateUser_ValidRequest_UpdateSuccessfully() {
+                UpdateUserRequestDto updateDto = UpdateUserRequestDto.builder()
+                                .firstName("UpdatedFirstName")
+                                .lastName("UpdatedLastName")
+                                .build();
+
+                User updatedUser = testUser.toBuilder()
+                                .firstName("UpdatedFirstName")
+                                .lastName("UpdatedLastName")
+                                .build();
+
+                UserResponseDto updatedResponse = testUserResponseDto.toBuilder()
+                                .firstName("UpdatedFirstName")
+                                .lastName("UpdatedLastName")
+                                .build();
+
+                when(userRepo.findById(testUserId)).thenReturn(Optional.of(testUser));
+                when(userRepo.save(any(User.class))).thenReturn(updatedUser);
+                when(userMapper.toResponseDto(updatedUser)).thenReturn(updatedResponse);
+
+                UserResponseDto result = userService.updateUser(testUserId, updateDto);
+
+                // assertions
+                assertNotNull(result);
+                assertEquals("UpdatedFirstName", result.getFirstName());
+                assertEquals("UpdatedLastName", result.getLastName());
+
+                verify(userRepo).findById(testUserId);
+                verify(userRepo).save(any(User.class));
+                verify(userMapper).toResponseDto(updatedUser);
+        }
+
+        @Test
+        void updateUser_InvalidUserId_ThrowsResourceNotFoundException() {
+                UUID invalidUserId = UUID.randomUUID();
+                UpdateUserRequestDto updateDto = UpdateUserRequestDto.builder()
+                                .firstName("UpdatedName")
+                                .build();
+
+                when(userRepo.findById(invalidUserId)).thenReturn(Optional.empty());
+
+                // Act & Assert
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> userService.updateUser(invalidUserId, updateDto));
+
+                assertEquals("User not found with id: " + invalidUserId, exception.getMessage());
+
+                verify(userRepo).findById(invalidUserId);
+                verify(userRepo, never()).save(any(User.class));
+        }
+
+        @Test
         void deleteUser_ValidId_DeletesSuccessfully() {
                 when(userRepo.findById(testUserId)).thenReturn(Optional.of(testUser));
 
@@ -232,6 +290,131 @@ public class UserServiceTest {
 
                 verify(userRepo).findById(invalidId);
                 verify(userRepo, never()).delete(any());
+        }
+
+        @Test
+        void uploadProfileImage_ValidFile_UploadSuccessfully() {
+                MultipartFile mockFile = mock(MultipartFile.class);
+                FileUploadResult uploadResult = FileUploadResult.builder()
+                                .url("https://storage.example.com/new-avatar.jpg")
+                                .fileKey("new-avatar")
+                                .fileName("new-avatar-jpg")
+                                .size(1024L)
+                                .build();
+
+                User updateUser = testUser.toBuilder().profileImage("https://storage.example.com/new-avatar.jpg")
+                                .build();
+
+                when(userRepo.findById(testUserId)).thenReturn(Optional.of(testUser));
+                doNothing().when(fileValidationService).validateImage(mockFile);
+                when(fileStorageService.uploadFile(mockFile, "avatars")).thenReturn(uploadResult);
+                when(userRepo.save(any(User.class))).thenReturn(updateUser);
+
+                FileUploadResult result = userService.uploadProfileImage(testUserId, mockFile);
+
+                assertNotNull(result);
+                assertEquals("https://storage.example.com/new-avatar.jpg", result.getUrl());
+
+                verify(fileValidationService).validateImage(mockFile);
+                verify(fileStorageService).uploadFile(mockFile, "avatars");
+                verify(userRepo).save(any(User.class));
+        }
+
+        @Test
+        void verifyEmail_ValidToken_VerifiesSuccessfully() {
+                String validToken = "valid-token";
+                User unverifiedUser = testUser.toBuilder()
+                                .emailVerified(false)
+                                .verificationToken(validToken)
+                                .tokenExpiration(Instant.now().plus(1, ChronoUnit.HOURS))
+                                .build();
+
+                User verifiedUser = unverifiedUser.toBuilder()
+                                .emailVerified(true)
+                                .verificationToken(null)
+                                .tokenExpiration(null)
+                                .build();
+
+                when(userRepo.findByVerificationToken(validToken)).thenReturn(Optional.of(unverifiedUser));
+                when(userRepo.save(any(User.class))).thenReturn(verifiedUser);
+
+                userService.verifyEmail(validToken);
+
+                verify(userRepo).findByVerificationToken(validToken);
+                verify(userRepo).save(any(User.class));
+
+        }
+
+        @Test
+        void verifyEmail_InvalidToken_ThrowsAuthorizationException() {
+                String invalidToken = "invalid-token";
+                when(userRepo.findByVerificationToken(invalidToken)).thenReturn(Optional.empty());
+
+                AuthorizationException exception = assertThrows(AuthorizationException.class,
+                                () -> userService.verifyEmail(invalidToken));
+
+                assertEquals("Invalid or already used verification token", exception.getMessage());
+                assertEquals(ErrorCode.INVALID_TOKEN, exception.getErrorCode());
+
+                verify(userRepo).findByVerificationToken(invalidToken);
+                verify(userRepo, never()).save(any());
+        }
+
+        @Test
+        void verifyEmail_ExpiredToken_ThrowsAuthorizationException() {
+                String expiredToken = "expired-token";
+                User user = testUser.toBuilder()
+                                .verificationToken(expiredToken)
+                                .tokenExpiration(Instant.now().minus(1, ChronoUnit.HOURS))
+                                .build();
+
+                when(userRepo.findByVerificationToken(expiredToken)).thenReturn(Optional.of(user));
+
+                AuthorizationException exception = assertThrows(AuthorizationException.class,
+                                () -> userService.verifyEmail(expiredToken));
+
+                assertEquals(ErrorCode.TOKEN_EXPIRED, exception.getErrorCode());
+
+                verify(userRepo, never()).save(any());
+        }
+
+        @Test
+        void verifyEmail_AlreadyVerified_ThrowsAuthorizationException() {
+                String token = "already-verified-token";
+                User verifiedUser = testUser.toBuilder()
+                                .emailVerified(true)
+                                .verificationToken(token)
+                                .tokenExpiration(Instant.now().plus(1, ChronoUnit.HOURS))
+                                .build();
+
+                when(userRepo.findByVerificationToken(token)).thenReturn(Optional.of(verifiedUser));
+
+                AuthorizationException exception = assertThrows(AuthorizationException.class,
+                                () -> userService.verifyEmail(token));
+
+                assertEquals(ErrorCode.EMAIL_ALREADY_VERIFIED, exception.getErrorCode());
+
+                verify(userRepo, never()).save(any());
+        }
+
+        @Test
+        void resendUserVerificationEmail_AlreadyVerified_ThrowsAuthorizationException() {
+                // Arrange
+                String email = "verified@example.com";
+                User verifiedUser = testUser.toBuilder()
+                                .email(email)
+                                .emailVerified(true)
+                                .build();
+
+                when(userRepo.findByEmail(email)).thenReturn(Optional.of(verifiedUser));
+
+                // Act & Assert
+                AuthorizationException exception = assertThrows(AuthorizationException.class,
+                                () -> userService.resendUserVerificationEmail(email));
+
+                assertEquals(ErrorCode.EMAIL_ALREADY_VERIFIED, exception.getErrorCode());
+
+                verify(emailService, never()).sendUserVerificationEmail(any(), any(), any(), any());
         }
 
 }

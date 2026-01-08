@@ -2,7 +2,9 @@ package dev.kingscode.ecommerce_api.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -27,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.kingscode.ecommerce_api.dto.FileUploadResult;
 import dev.kingscode.ecommerce_api.dto.user.request.CreateUserRequestDto;
+import dev.kingscode.ecommerce_api.dto.user.request.ResetPasswordRequestDto;
 import dev.kingscode.ecommerce_api.dto.user.request.UpdateUserRequestDto;
 import dev.kingscode.ecommerce_api.dto.user.response.UserResponseDto;
 import dev.kingscode.ecommerce_api.exception.AuthorizationException;
@@ -399,7 +402,6 @@ public class UserServiceTest {
 
         @Test
         void resendUserVerificationEmail_AlreadyVerified_ThrowsAuthorizationException() {
-                // Arrange
                 String email = "verified@example.com";
                 User verifiedUser = testUser.toBuilder()
                                 .email(email)
@@ -415,6 +417,114 @@ public class UserServiceTest {
                 assertEquals(ErrorCode.EMAIL_ALREADY_VERIFIED, exception.getErrorCode());
 
                 verify(emailService, never()).sendUserVerificationEmail(any(), any(), any(), any());
+        }
+
+        @Test
+        void updateUserPassword_ValidRequest_UpdatesPassword() {
+                String token = "valid-reset-token";
+                String newPassword = "newPassword123";
+                String encodedNewPassword = "encodedNewPassword";
+
+                ResetPasswordRequestDto requestDto = ResetPasswordRequestDto.builder()
+                                .email("test@example.com")
+                                .token(token)
+                                .newPassword(newPassword)
+                                .build();
+
+                User userWithToken = testUser.toBuilder()
+                                .email("test@example.com")
+                                .pwdResetToken(token)
+                                .tokenExpiration(Instant.now().plus(1, ChronoUnit.HOURS))
+                                .build();
+
+                User updatedUser = userWithToken.toBuilder()
+                                .password(encodedNewPassword)
+                                .pwdResetToken(null)
+                                .tokenExpiration(null)
+                                .build();
+
+                when(userRepo.findByPwdResetToken(token)).thenReturn(Optional.of(userWithToken));
+                when(passwordEncoder.matches(newPassword, userWithToken.getPassword())).thenReturn(false);
+                when(passwordEncoder.encode(newPassword)).thenReturn(encodedNewPassword);
+                when(userRepo.save(any(User.class))).thenReturn(updatedUser);
+
+                // Act
+                userService.updateUserPassword(requestDto);
+
+                // Assert
+                verify(userRepo).findByPwdResetToken(token);
+                verify(passwordEncoder).matches(newPassword, userWithToken.getPassword());
+                verify(passwordEncoder).encode(newPassword);
+                verify(userRepo).save(any(User.class));
+        }
+
+        @Test
+        void updateUserPassword_ExpiredToken_ThrowsAuthorizationException() {
+                String expiredToken = "expired-token";
+                ResetPasswordRequestDto requestDto = ResetPasswordRequestDto.builder()
+                                .email("test@example.com")
+                                .token(expiredToken)
+                                .newPassword("newPassword123")
+                                .build();
+
+                User user = testUser.toBuilder()
+                                .pwdResetToken(expiredToken)
+                                .tokenExpiration(Instant.now().minus(1, ChronoUnit.HOURS))
+                                .build();
+
+                when(userRepo.findByPwdResetToken(expiredToken)).thenReturn(Optional.of(user));
+
+                // Act & Assert
+                AuthorizationException exception = assertThrows(AuthorizationException.class,
+                                () -> userService.updateUserPassword(requestDto));
+
+                assertEquals("Password reset token has expired", exception.getMessage());
+                assertEquals(ErrorCode.TOKEN_EXPIRED, exception.getErrorCode());
+
+                verify(passwordEncoder, never()).encode(anyString());
+                verify(userRepo, never()).save(any());
+        }
+
+        @Test
+        void refreshVerificationTokenIfExpired_TokenValid_ReturnsSameUser() {
+                User validUser = testUser.toBuilder()
+                                .verificationToken("valid-token")
+                                .tokenExpiration(Instant.now().plus(1, ChronoUnit.HOURS))
+                                .build();
+
+                User result = userService.refreshVerificationTokenIfExpired(validUser);
+
+                // Assert
+                assertSame(validUser, result);
+                verify(userRepo, never()).save(any());
+                verify(tokenGenerator, never()).generateToken();
+        }
+
+        @Test
+        void refreshVerificationTokenIfExpired_TokenExpired_GeneratesNewToken() {
+                User expiredUser = testUser.toBuilder()
+                                .verificationToken("expired-token")
+                                .tokenExpiration(Instant.now().minus(1, ChronoUnit.HOURS))
+                                .build();
+
+                String newToken = "new-token";
+                Instant newExpiry = Instant.now().plus(24, ChronoUnit.HOURS);
+
+                User refreshedUser = expiredUser.toBuilder()
+                                .verificationToken(newToken)
+                                .tokenExpiration(newExpiry)
+                                .build();
+
+                when(tokenGenerator.generateToken()).thenReturn(newToken);
+                when(userRepo.save(any(User.class))).thenReturn(refreshedUser);
+
+                User result = userService.refreshVerificationTokenIfExpired(expiredUser);
+
+                assertNotNull(result);
+                assertEquals(newToken, result.getVerificationToken());
+                assertTrue(result.getTokenExpiration().isAfter(Instant.now()));
+                verify(tokenGenerator).generateToken();
+                verify(userRepo).save(any(User.class));
         }
 
 }
